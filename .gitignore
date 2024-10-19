@@ -1,3 +1,6 @@
 *.o
 output
 *~
+build/
+.*
+compile_commands.json

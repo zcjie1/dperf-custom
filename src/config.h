@@ -130,6 +130,7 @@ struct config {
     bool tcp_rst;
     bool http;
     bool stats_http;    /* payload size >= HTTP_DATA_MIN_SIZE */
+    bool no_cpi;
     uint8_t http_method;
     uint8_t tos;
     uint8_t pipeline;
@@ -186,6 +187,8 @@ struct config {
 
     int listen;
     int listen_num;
+    
+    char file_prefix[RTE_ARG_LEN];
 
     struct ip_group client_ip_group;
     struct ip_group server_ip_group;

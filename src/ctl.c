@@ -61,7 +61,7 @@ static void ctl_log_close(FILE *fp)
     }
 }
 
-static struct timeval g_last_tv;
+static struct timeval g_last_tv; // 程序启动时间
 static void ctl_wait_init(void)
 {
     tick_wait_init(&g_last_tv);
@@ -137,7 +137,7 @@ static void *ctl_thread_main(void *data)
     cfg->duration += g_config.slow_start;
 
     fp = ctl_log_open(cfg);
-    work_space_wait_start();
+    work_space_wait_start(); // 等待所有work space启动
     kni_link_up(cfg);
 
     ctl_wait_init();

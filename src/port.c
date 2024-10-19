@@ -204,7 +204,10 @@ static int port_init_port_id(struct netif_port *port)
     int socket = 0;
 
     for (i = 0; i < port->pci_num; i++) {
-        pci = port->pci_list[i];
+        if(port->is_vdev)
+            pci = port->vdev_name;
+        else
+            pci = port->pci_list[i];
         if (rte_eth_dev_get_port_by_name(pci, &port_id) != 0) {
             printf("warning: cannot find port id by pci %s\n", pci);
             port_id = (uint16_t)i;

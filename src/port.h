@@ -34,6 +34,7 @@
 #define THREAD_NUM_MAX      64
 #define NETIF_PORT_MAX      4
 #define PCI_LEN             12
+#define VDEV_PARAM_LEN      256
 
 #define NB_RXD              4096
 #define NB_TXD              4096
@@ -55,6 +56,7 @@ struct netif_port {
     int id; /* DPDK port id */
     int queue_num;
     int socket; /* cpu socket */
+    bool is_vdev;
     bool enable;
     bool ipv6; /* local_ip, gateway_ip's address family */
     ipaddr_t local_ip;
@@ -83,8 +85,10 @@ struct netif_port {
     union {
         char pci[PCI_LEN + 1];
         char pci_list[PCI_NUM_MAX][PCI_LEN + 1];
+        char vdev_param[VDEV_PARAM_LEN];
     };
-
+    
+    char vdev_name[32];
     uint16_t port_id_list[PCI_NUM_MAX];
 };
 

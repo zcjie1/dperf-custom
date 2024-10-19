@@ -47,6 +47,8 @@ static int config_parse_mode(int argc, char *argv[], void *data);
 static int config_parse_cpu(int argc, char *argv[], void *data);
 static int config_parse_socket_mem(int argc, char *argv[], void *data);
 static int config_parse_port(int argc, char *argv[], void *data);
+static int config_parse_no_pci(int argc, char *argv[], void *data);
+static int config_parse_file_prefix(int argc, char *argv[], void *data);
 static int config_parse_duration(int argc, char *argv[], void *data);
 static int config_parse_cps(int argc, char *argv[], void *data);
 static int config_parse_cc(int argc, char *argv[], void *data);
@@ -102,6 +104,8 @@ static struct config_keyword g_config_keywords[] = {
     {"cpu", config_parse_cpu, "n0 n1 n2-n3..., eg 0-4 7 8 9 10"},
     {"socket_mem", config_parse_socket_mem, "n0,n1,n2..."},
     {"port", config_parse_port, "PCI/bondMode:Policy(PCI0,PCI1,...) IPAddress Gateway [Gateway-Mac], eg 0000:13:00.0 192.168.1.3 192.168.1.1"},
+    {"no_pci", config_parse_no_pci, "no pci"},
+    {"file_prefix", config_parse_file_prefix, "dperf HugePage file-prefix"},
     {"duration", config_parse_duration, "Time, eg 1.5d, 2h, 3.5m, 100s, 100"},
     {"cps", config_parse_cps, "Number, eg 1m, 1.5m, 2k, 100"},
     {"cc", config_parse_cc, "Number, eg 100m, 1.5m, 2k, 100"},
@@ -545,10 +549,35 @@ static int config_parse_bond(struct netif_port *port, char *str)
     return 0;
 }
 
+static int config_parse_vdev(struct netif_port *port, char *str)
+{
+    char *p = NULL;
+    
+    int str_len = strlen(str);
+    if (str_len < 5) { // "vdev="
+        return -1;
+    }
+
+    p = str;
+    if (strncmp(p, "--vdev=", 7) != 0) {
+        return -1;
+    }
+    memcpy(port->vdev_param, p, str_len);
+    
+    p = p + 7;
+    p = memccpy(port->vdev_name, p, ',', sizeof(port->vdev_name));
+    *(p - 1) = '\0';
+    
+    port->is_vdev = true;
+    port->pci_num = 1;
+    
+    return 0;
+}
+
 static int config_parse_port(int argc, char *argv[], void *data)
 {
-    int af_local = 0;
-    int af_gateway = 0;
+    int af_local = 0; // local ip 类型
+    int af_gateway = 0; // gateway ip 类型
     struct netif_port *port = NULL;
     struct config *cfg = data;
 
@@ -563,6 +592,11 @@ static int config_parse_port(int argc, char *argv[], void *data)
     if (argv[1][0] == 'b') {
         if (config_parse_bond(port, argv[1]) < 0) {
             printf("bad bond \"%s\"\n", argv[1]);
+            return -1;
+        }
+    } else if(argv[1][0] == '-') {
+        if (config_parse_vdev(port, argv[1]) < 0) {
+            printf("bad vdev \"%s\"\n", argv[1]);
             return -1;
         }
     } else if (strlen(argv[1]) == PCI_LEN) {
@@ -598,6 +632,28 @@ static int config_parse_port(int argc, char *argv[], void *data)
     sprintf(port->bond_name, "net_bonding%d", cfg->port_num);
     port->id = -1;
     cfg->port_num++;
+    return 0;
+}
+
+static int config_parse_no_pci(int argc, char *argv[], void *data)
+{
+    struct config *cfg = data;
+    cfg->no_cpi = true;
+    return 0;
+}
+
+static int config_parse_file_prefix(int argc, char *argv[], void *data)
+{
+    struct config *cfg = data;
+    if(argc != 2)
+        return -1;
+    
+    size_t len = strlen(argv[1]);
+    if(len >= 64)
+        return -1;
+    
+    memcpy(cfg->file_prefix, argv[1], len);
+    cfg->file_prefix[len] = '\0';
     return 0;
 }
 
@@ -1699,6 +1755,9 @@ static int config_check_port(struct config *cfg)
             if (port0 == port1) {
                 continue;
             }
+            
+            if(port0->is_vdev || port1->is_vdev)
+                continue;
 
             if (config_check_port_pci(port0, port1) < 0) {
                 printf("duplicate pci\n");
@@ -1708,6 +1767,10 @@ static int config_check_port(struct config *cfg)
     }
 
     config_for_each_port(cfg, port) {
+        if(port->is_vdev) {
+            port->queue_num = 1;
+            continue;
+        }
         port->queue_num = config_port_queue_num(cfg);
     }
 

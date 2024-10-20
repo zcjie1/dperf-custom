@@ -283,6 +283,10 @@ static int port_start(struct netif_port *port)
 {
     int ret = 0;
     int port_id = port->id;
+    
+    struct rte_eth_dev_info dev_info;
+    struct rte_ether_addr addr;
+    char device_name[256];
 
     ret = rte_eth_dev_start(port_id);
     if (ret == 0) {
@@ -297,6 +301,22 @@ static int port_start(struct netif_port *port)
         rte_eth_allmulticast_enable(port_id);
         rte_eth_promiscuous_enable(port_id);
         rte_eth_stats_reset(port_id);
+
+        ret = rte_eth_macaddr_get(port, &addr);
+        if (ret < 0) {
+            printf("Error reading MAC address for port %d\n", port);
+            return 0;
+        }
+
+        printf("Port %u: \n", port->id);
+        printf("    MAC: %02"PRIx8 ":" "%02"PRIx8 ":" "%02"PRIx8 ":"
+                "%02"PRIx8 ":" "%02"PRIx8 ":" "%02"PRIx8 "\n",
+                RTE_ETHER_ADDR_BYTES(&addr));
+        
+        rte_eth_dev_info_get(port->id, &dev_info);
+        rte_eth_dev_get_name_by_port(port->id, device_name);
+        printf("    Device Name: %s\n", device_name);
+        printf("    Driver Name: %s\n\n", dev_info.driver_name);
 
         return 0;
     } else {

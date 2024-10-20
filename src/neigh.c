@@ -58,6 +58,7 @@ static bool neigh_gateway_is_enable(struct work_space *ws)
     return true;
 }
 
+// arp探测网关MAC地址，最长60秒
 int neigh_check_gateway(struct work_space *ws)
 {
     int i = 0;

@@ -209,10 +209,14 @@ void dpdk_run(int (*lcore_main)(void*), void* data)
 {
     int lcore_id = 0;
 
-    RTE_LCORE_FOREACH(lcore_id) {
-        if (lcore_id == 0) {
-            continue;
-        }
+    // RTE_LCORE_FOREACH(lcore_id) {
+    //     if (lcore_id == 0) {
+    //         continue;
+    //     }
+    //     rte_eal_remote_launch(lcore_main, data, lcore_id);
+    // }
+
+    RTE_LCORE_FOREACH_WORKER(lcore_id) {
         rte_eal_remote_launch(lcore_main, data, lcore_id);
     }
 

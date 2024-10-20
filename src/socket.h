@@ -59,7 +59,7 @@ struct socket {
     /* ------16 bytes------  */
     uint32_t rcv_nxt;
     uint32_t snd_nxt;
-    uint32_t snd_una;
+    uint32_t snd_una; // send unackownledged
 
     uint8_t flags; /* tcp flags*/
     uint8_t state:4;
@@ -76,10 +76,10 @@ struct socket {
     uint16_t csum_ip_data;
 
     /* ------16 bytes------  */
-    uint32_t laddr;
-    uint32_t faddr;
-    uint16_t lport;
-    uint16_t fport;
+    uint32_t laddr; // local address 
+    uint32_t faddr; // foreign address
+    uint16_t lport; // local port
+    uint16_t fport; // foreign port
     union {
         uint16_t csum_tcp;
         uint16_t csum_udp;

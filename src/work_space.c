@@ -137,7 +137,7 @@ static void work_space_init_time(struct work_space *ws)
     cpu_num = ws->cfg->cpu_num;
     us = (1000ul * 1000ul * 1000ul) / (1000ul * cpu_num);
 
-    work_space_wait_all(ws);
+    work_space_wait_all(ws); // 等待所有核心上的work space执行到此
     usleep(ws->id * us);
 
     socket_timer_init();
@@ -245,7 +245,7 @@ struct work_space *work_space_new(struct config *cfg, int id)
     } else {
         client_init(ws);
     }
-    work_space_wait_all(ws);
+    work_space_wait_all(ws); // 等待所有核心上的work space运行到此
     work_space_init_rss(ws);
 
     return ws;

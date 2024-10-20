@@ -61,7 +61,7 @@ static void ctl_log_close(FILE *fp)
     }
 }
 
-static struct timeval g_last_tv; // 程序启动时间
+static struct timeval g_last_tv; // ctl线程启动时间
 static void ctl_wait_init(void)
 {
     tick_wait_init(&g_last_tv);

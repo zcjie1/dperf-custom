@@ -88,6 +88,7 @@ struct netif_port {
         char vdev_param[VDEV_PARAM_LEN];
     };
     
+    bool is_zcio_client;
     char vdev_name[32];
     uint16_t port_id_list[PCI_NUM_MAX];
 };
@@ -99,7 +100,7 @@ struct config;
 int port_init_all(struct config *cfg);
 int port_start_all(struct config *cfg);
 void port_stop_all(struct config *cfg);
-void port_clear(uint16_t port_id, uint16_t queue_id);
+void port_clear(struct work_space *ws, uint16_t port_id, uint16_t queue_id);
 int port_config(struct netif_port *port);
 struct rte_mempool *port_get_mbuf_pool(struct netif_port *p, int queue_id);
 

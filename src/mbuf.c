@@ -28,6 +28,8 @@
 #include "icmp6.h"
 
 #define NB_MBUF             (8192 * 8)
+#define ALLOC_NUM(x) (((x) > 32768) ? 0 : ((x) + 32767))
+#define FREE_MAGIC_NUM 114514
 
 __thread struct mbuf_free_pool g_mbuf_free_pool;
 
@@ -167,4 +169,30 @@ bool mbuf_is_neigh(struct rte_mbuf *m)
     }
 
     return false;
+}
+
+void zcio_client_mbuf_free(uint16_t port_id, uint16_t queue_id, 
+        struct rte_mbuf **tx_pkts, const uint16_t nb_pkts)
+{
+    if(tx_pkts == NULL)
+        return;
+    
+    for(int i = 0; i < nb_pkts; i++) {
+        tx_pkts[i]->dynfield1[0] = FREE_MAGIC_NUM;
+    }
+    
+    int ret = 0;
+    int avail_num = nb_pkts;
+    int sent_num = 0;
+    while(avail_num > 0) {
+        ret = rte_eth_tx_burst(port_id, queue_id, tx_pkts + sent_num, avail_num);
+        avail_num -= ret;
+        sent_num += ret;
+    }
+}
+
+int zcio_client_alloc_mbuf(uint16_t port_id, uint16_t queue_id, 
+        struct rte_mbuf **rx_pkts, const uint16_t nb_pkts)
+{
+	return rte_eth_rx_burst(port_id, queue_id, rx_pkts, ALLOC_NUM(nb_pkts));
 }

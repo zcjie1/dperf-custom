@@ -67,6 +67,10 @@ static inline void mbuf_prefetch(struct rte_mbuf *m)
 
 void mbuf_print(struct rte_mbuf *m, const char *tag);
 void mbuf_log(struct rte_mbuf *m, const char *tag);
+void zcio_client_mbuf_free(uint16_t port_id, uint16_t queue_id, 
+        struct rte_mbuf **tx_pkts, const uint16_t nb_pkts);
+int zcio_client_mbuf_alloc(uint16_t port_id, uint16_t queue_id, 
+        struct rte_mbuf **rx_pkts, const uint16_t nb_pkts);
 
 #ifdef DPERF_DEBUG
 #define MBUF_LOG(m, tag) mbuf_log(m, tag)
@@ -79,22 +83,34 @@ struct rte_mempool *mbuf_pool_create(const char *str, uint16_t port_id, uint16_t
 
 struct mbuf_free_pool {
     int num;
-    struct rte_mbuf *head;
+    struct rte_mbuf *pool[128];
 };
 
 extern __thread struct mbuf_free_pool g_mbuf_free_pool;
 
-#define mbuf_free(m) rte_pktmbuf_free(m)
+// #define mbuf_free(m) rte_pktmbuf_free(m)
 
-static inline void mbuf_free2(struct rte_mbuf *m)
+static inline void mbuf_free(struct work_space *ws, struct rte_mbuf *m)
+{
+    if(!ws->port->is_zcio_client) {
+        rte_pktmbuf_free(m);
+        return;
+    }
+    zcio_client_mbuf_free(ws->port->id, ws->queue_id, &m, 1);
+}
+
+static inline void mbuf_free2(struct work_space *ws, struct rte_mbuf *m)
 {
     if (m) {
-        m->next = g_mbuf_free_pool.head;
-        g_mbuf_free_pool.head = m;
+        g_mbuf_free_pool.pool[g_mbuf_free_pool.num] = m;
         g_mbuf_free_pool.num++;
-        if (g_mbuf_free_pool.num >= 128) {
-            rte_pktmbuf_free(m);
-            g_mbuf_free_pool.head = NULL;
+        if (g_mbuf_free_pool.num >= 64) {
+            if(!ws->port->is_zcio_client) {
+                rte_pktmbuf_free_bulk(g_mbuf_free_pool.pool, g_mbuf_free_pool.num);
+                g_mbuf_free_pool.num = 0;
+                return;
+            }
+            zcio_client_mbuf_free(ws->port->id, ws->queue_id, g_mbuf_free_pool.pool, g_mbuf_free_pool.num);
             g_mbuf_free_pool.num = 0;
         }
     }

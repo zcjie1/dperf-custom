@@ -157,7 +157,8 @@ static inline void work_space_tx_flush(struct work_space *ws)
     num = queue->tail - queue->head;
     net_stats_tx_drop(num);
     for (i = queue->head; i < queue->tail; i++) {
-        rte_pktmbuf_free(queue->tx[i]);
+        // rte_pktmbuf_free(queue->tx[i]);
+        mbuf_free2(ws, queue->tx[i]);
     }
     queue->head = 0;
     queue->tail = 0;

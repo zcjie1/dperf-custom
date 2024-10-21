@@ -211,12 +211,12 @@ static void udp_client_process(struct work_space *ws, struct rte_mbuf *m)
         udp_send_request(ws, sk);
     }
 
-    mbuf_free(m);
+    mbuf_free(ws, m);
     return;
 
 out:
     net_stats_udp_drop();
-    mbuf_free(m);
+    mbuf_free(ws, m);
 }
 
 static void udp_server_process(struct work_space *ws, struct rte_mbuf *m)
@@ -234,12 +234,12 @@ static void udp_server_process(struct work_space *ws, struct rte_mbuf *m)
     }
 
     udp_send(ws, sk);
-    mbuf_free(m);
+    mbuf_free(ws, m);
     return;
 
 out:
     net_stats_udp_drop();
-    mbuf_free(m);
+    mbuf_free(ws, m);
 }
 
 static int udp_client_launch(struct work_space *ws)
@@ -358,6 +358,6 @@ void udp_drop(__rte_unused struct work_space *ws, struct rte_mbuf *m)
         }
         MBUF_LOG(m, "drop");
         net_stats_udp_drop();
-        mbuf_free2(m);
+        mbuf_free2(ws, m);
     }
 }

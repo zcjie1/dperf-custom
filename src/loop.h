@@ -99,7 +99,7 @@ static inline void vxlan_input(struct work_space *ws, struct rte_mbuf *m,
 
 out:
     net_stats_other_rx();
-    mbuf_free(m);
+    mbuf_free(ws, m);
 }
 
 /*
@@ -178,7 +178,7 @@ static inline void ipv4_input(struct work_space *ws, struct rte_mbuf *m,
 
     net_stats_other_rx();
 drop:
-    mbuf_free(m);
+    mbuf_free(ws, m);
 }
 
 /*
@@ -254,7 +254,7 @@ repeat:
 
     net_stats_other_rx();
 drop:
-    mbuf_free(m);
+    mbuf_free(ws, m);
 }
 
 static inline int slow_timer_run(struct work_space *ws)

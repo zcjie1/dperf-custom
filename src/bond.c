@@ -105,7 +105,7 @@ void bond_broadcast(struct work_space *ws, struct rte_mbuf *m)
 
         net_stats_tx(m2);
         if (rte_eth_tx_burst(port_id, ws->queue_id, &m2, 1) != 1) {
-            mbuf_free(m2);
+            mbuf_free(ws, m2);
         }
     }
 }

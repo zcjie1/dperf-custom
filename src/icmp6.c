@@ -63,7 +63,7 @@ static void icmp6_ns_process(struct work_space *ws, struct rte_mbuf *m)
     net_stats_icmp_rx();
     if ((!work_space_ip6_exist(ws, (ipaddr_t *)&(ns->nd_ns_target)))
             || (ip6h->ip6_hops != ND_TTL)) {
-        mbuf_free(m);
+        mbuf_free(ws, m);
         return;
     }
 
@@ -96,7 +96,7 @@ static void icmp6_na_process(struct work_space *ws, struct rte_mbuf *m)
         return kni_recv(ws, m);
     }
 
-    mbuf_free(m);
+    mbuf_free(ws, m);
 }
 
 static void icmp6_echo_process(struct work_space *ws, struct rte_mbuf *m)
@@ -107,7 +107,7 @@ static void icmp6_echo_process(struct work_space *ws, struct rte_mbuf *m)
     const struct eth_addr *smac = &(ws->port->local_mac);
 
     if (!work_space_ip6_exist(ws, (ipaddr_t *)&(ip6h->ip6_dst))) {
-        mbuf_free(m);
+        mbuf_free(ws, m);
         return;
     }
 
@@ -133,7 +133,7 @@ void icmp6_process(struct work_space *ws, struct rte_mbuf *m)
 
     net_stats_icmp_rx();
     if (code != 0) {
-        mbuf_free(m);
+        mbuf_free(ws, m);
         return;
     }
 
@@ -147,9 +147,9 @@ void icmp6_process(struct work_space *ws, struct rte_mbuf *m)
         if (ws->kni && work_space_is_local_addr(ws, m)) {
             return kni_recv(ws, m);
         }
-        mbuf_free(m);
+        mbuf_free(ws, m);
     } else {
-        mbuf_free(m);
+        mbuf_free(ws, m);
     }
 }
 

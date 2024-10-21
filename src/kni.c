@@ -323,7 +323,7 @@ void kni_recv(struct work_space *ws, struct rte_mbuf *m)
             if (likely(kr && rte_ring_enqueue(kr, (void*)m) == 0)) {
                 return;
             }
-            mbuf_free2(m);
+            mbuf_free2(ws, m);
         }
         return;
     }
@@ -343,7 +343,7 @@ void kni_recv(struct work_space *ws, struct rte_mbuf *m)
     }
 
     for (i = send_n; i < n; ++i) {
-        mbuf_free2(mbufs[i]);
+        mbuf_free2(ws, mbufs[i]);
     }
 }
 

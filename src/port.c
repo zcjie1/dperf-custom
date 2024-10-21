@@ -193,6 +193,10 @@ int port_config(struct netif_port *port)
         }
     }
 
+    if(strcmp(dev_info.driver_name, "net_zcio ") == 0) {
+        port->is_zcio_client = true;
+    }
+
     return 0;
 }
 
@@ -355,7 +359,8 @@ void port_stop_all(struct config *cfg)
     }
 }
 
-void port_clear(uint16_t port_id, uint16_t queue_id)
+// 清空 port 接收队列
+void port_clear(struct work_space *ws, uint16_t port_id, uint16_t queue_id)
 {
     int i = 0;
     int ret = 0;
@@ -364,7 +369,7 @@ void port_clear(uint16_t port_id, uint16_t queue_id)
     for (i = 0; i < NB_RXD; i++) {
         ret = rte_eth_rx_burst(port_id, queue_id, &m, 1);
         if (ret) {
-            mbuf_free(m);
+            mbuf_free(ws, m);
         } else {
             break;
         }

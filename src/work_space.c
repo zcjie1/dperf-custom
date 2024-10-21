@@ -330,11 +330,20 @@ void work_space_update_gw(struct work_space *ws, struct eth_addr *ea)
 
 struct rte_mbuf *work_space_alloc_mbuf(struct work_space *ws)
 {
+    int ret;
+    struct rte_mbuf *buf;
+    if(ws->port->is_zcio_client) {
+        ret = zcio_client_mbuf_alloc(ws->port->id, ws->queue_id, &buf, 1);
+        if(ret == 1)
+            return buf;
+        return NULL;
+    }
+    
     struct rte_mempool *p = NULL;
-
     p = port_get_mbuf_pool(ws->port, ws->queue_id);
     if (p) {
-        return rte_pktmbuf_alloc(p);
+        buf = rte_pktmbuf_alloc(p);
+        return buf;
     }
 
     return NULL;

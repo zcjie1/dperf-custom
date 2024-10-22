@@ -1133,7 +1133,7 @@ void tcp_drop(__rte_unused struct work_space *ws, struct rte_mbuf *m)
             return kni_recv(ws, m);
         }
         net_stats_tcp_drop();
-        mbuf_free(m);
+        mbuf_free(ws, m);
     }
 }
 

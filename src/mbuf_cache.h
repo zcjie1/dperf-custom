@@ -62,23 +62,27 @@ static inline void *mbuf_get_userdata(struct rte_mbuf *m)
 #endif
 }
 
-static inline struct rte_mbuf *mbuf_cache_alloc(struct mbuf_cache *p)
+static inline struct rte_mbuf *mbuf_cache_alloc(struct work_space *ws, struct mbuf_cache *p)
 {
     uint8_t *data = NULL;
     struct rte_mbuf *m = NULL;
 
-    m = rte_pktmbuf_alloc(p->mbuf_pool);
-    if (unlikely(m == NULL)) {
-        return NULL;
+    if(!ws->port->is_zcio_client) {
+        m = rte_pktmbuf_alloc(p->mbuf_pool);
+        if (unlikely(m == NULL)) {
+            return NULL;
+        }
+    }else {
+        m = zcio_client_alloc_mbuf(ws->port_id, ws->queue_id, &m, 1);
     }
 
-    if (likely(mbuf_get_userdata(m) == p)) {
-        mbuf_push_data(m, p->data.total_len);
-    } else {
-        mbuf_set_userdata(m, p);
-        data = mbuf_push_data(m, p->data.total_len);
-        memcpy(data, p->data.data, p->data.total_len);
-    }
+    // if (likely(mbuf_get_userdata(m) == p)) {
+    //     mbuf_push_data(m, p->data.total_len);
+    // } else {
+    //     mbuf_set_userdata(m, p);
+    //     data = mbuf_push_data(m, p->data.total_len);
+    //     memcpy(data, p->data.data, p->data.total_len);
+    // }
 
     return m;
 }

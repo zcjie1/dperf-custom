@@ -78,18 +78,22 @@ static inline void udp_change_dip(struct work_space *ws, struct iphdr *iph, stru
     }
 }
 
-static inline struct rte_mbuf *udp_new_packet(struct work_space *ws, struct socket *sk)
+static inline struct rte_mbuf *udp_new_packet(struct work_space *ws, struct socket *sk, struct rte_mbuf *m)
 {
     struct rte_mbuf *m = NULL;
     struct iphdr *iph = NULL;
     struct udphdr *uh = NULL;
     struct ip6_hdr *ip6h = NULL;
     struct vxlan_headers *vxhs = NULL;
-
-    m = mbuf_cache_alloc(&ws->udp);
-    if (unlikely(m == NULL)) {
-        return NULL;
+    void *data = NULL;
+    
+    if(m == NULL) {
+        m = mbuf_cache_alloc(ws, &ws->udp);
+        if (unlikely(m == NULL)) {
+            return NULL;
+        }
     }
+    
 
     if (ws->vxlan) {
         vxhs = (struct vxlan_headers *)mbuf_eth_hdr(m);
@@ -108,6 +112,10 @@ static inline struct rte_mbuf *udp_new_packet(struct work_space *ws, struct sock
         ip6h = (struct ip6_hdr *)iph;
         uh = mbuf_udp_hdr(m);
     }
+    
+    // 数据拷贝
+    data = (void *)(uh + 1);
+    memcpy(data, ws->udp.data.data, ws->udp.data.data_len);
 
     if (!ws->ipv6) {
         iph->id = htons(ws->ip_id++);
@@ -130,11 +138,11 @@ static inline struct rte_mbuf *udp_new_packet(struct work_space *ws, struct sock
     return m;
 }
 
-static inline struct rte_mbuf* udp_send(struct work_space *ws, struct socket *sk)
+static inline struct rte_mbuf* udp_send(struct work_space *ws, struct socket *sk, struct rte_mbuf *m)
 {
-    struct rte_mbuf *m = NULL;
+    // struct rte_mbuf *m = NULL;
 
-    m = udp_new_packet(ws, sk);
+    udp_new_packet(ws, sk, m);
     if (m) {
         work_space_tx_send_udp(ws, m);
     }
@@ -233,8 +241,8 @@ static void udp_server_process(struct work_space *ws, struct rte_mbuf *m)
         goto out;
     }
 
-    udp_send(ws, sk);
-    mbuf_free(ws, m);
+    udp_send(ws, sk, m);
+    // mbuf_free(ws, m);
     return;
 
 out:
@@ -257,7 +265,7 @@ static int udp_client_launch(struct work_space *ws)
         }
 
         do {
-            udp_send(ws, sk);
+            udp_send(ws, sk, NULL);
             pipeline--;
         } while (pipeline > 0);
         if (sk->keepalive) {

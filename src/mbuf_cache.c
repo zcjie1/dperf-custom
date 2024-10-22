@@ -358,3 +358,31 @@ void mbuf_cache_set_dmac(struct mbuf_cache *cache, struct eth_addr *ea)
     eth = mbuf_data_ethhdr(&cache->data);
     eth_addr_copy(&eth->d_addr, ea);
 }
+
+inline struct rte_mbuf *mbuf_cache_alloc(struct work_space *ws, struct mbuf_cache *p)
+{
+    // uint8_t *data = NULL;
+    struct rte_mbuf *m = NULL;
+    int ret = 0;
+
+    if(!ws->port->is_zcio_client) {
+        m = rte_pktmbuf_alloc(p->mbuf_pool);
+        if (unlikely(m == NULL)) {
+            return NULL;
+        }
+    }else {
+        ret = zcio_client_mbuf_alloc(ws->port_id, ws->queue_id, &m, 1);
+        if(ret != 1)
+            return NULL;
+    }
+
+    // if (likely(mbuf_get_userdata(m) == p)) {
+    //     mbuf_push_data(m, p->data.total_len);
+    // } else {
+    //     mbuf_set_userdata(m, p);
+    //     data = mbuf_push_data(m, p->data.total_len);
+    //     memcpy(data, p->data.data, p->data.total_len);
+    // }
+
+    return m;
+}

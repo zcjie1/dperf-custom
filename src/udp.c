@@ -80,7 +80,7 @@ static inline void udp_change_dip(struct work_space *ws, struct iphdr *iph, stru
 
 static inline struct rte_mbuf *udp_new_packet(struct work_space *ws, struct socket *sk, struct rte_mbuf *m)
 {
-    struct rte_mbuf *m = NULL;
+    // struct rte_mbuf *m = NULL;
     struct iphdr *iph = NULL;
     struct udphdr *uh = NULL;
     struct ip6_hdr *ip6h = NULL;

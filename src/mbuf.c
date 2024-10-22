@@ -196,3 +196,30 @@ int zcio_client_mbuf_alloc(uint16_t port_id, uint16_t queue_id,
 {
 	return rte_eth_rx_burst(port_id, queue_id, rx_pkts, ALLOC_NUM(nb_pkts));
 }
+
+inline void mbuf_free2(struct work_space *ws, struct rte_mbuf *m)
+{
+    if (m) {
+        g_mbuf_free_pool.pool[g_mbuf_free_pool.num] = m;
+        g_mbuf_free_pool.num++;
+        if (g_mbuf_free_pool.num >= 64) {
+            if(!ws->port->is_zcio_client) {
+                rte_pktmbuf_free_bulk(g_mbuf_free_pool.pool, g_mbuf_free_pool.num);
+                g_mbuf_free_pool.num = 0;
+                return;
+            }
+            zcio_client_mbuf_free(ws->port->id, ws->queue_id, g_mbuf_free_pool.pool, g_mbuf_free_pool.num);
+            g_mbuf_free_pool.num = 0;
+        }
+    }
+}
+
+inline void mbuf_free(struct work_space *ws, struct rte_mbuf *m)
+{
+    if(!ws->port->is_zcio_client) {
+        rte_pktmbuf_free(m);
+        return;
+    }
+    // zcio_client_mbuf_free(ws->port->id, ws->queue_id, &m, 1);
+    mbuf_free2(ws, m);
+}

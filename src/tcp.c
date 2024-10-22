@@ -35,7 +35,7 @@
 #define tcp_seq_gt(seq0, seq1)    ((int)((seq0) - (seq1)) > 0)
 #define tcp_seq_ge(seq0, seq1)    ((int)((seq0) - (seq1)) >= 0)
 
-static inline void tcp_process_rst(struct socket *sk, struct rte_mbuf *m)
+static inline void tcp_process_rst(struct work_space *ws, struct socket *sk, struct rte_mbuf *m)
 {
 #ifdef DPERF_DEBUG
     if (sk->log) {
@@ -47,7 +47,7 @@ static inline void tcp_process_rst(struct socket *sk, struct rte_mbuf *m)
         socket_close(sk);
     }
 
-    mbuf_free2(m);
+    mbuf_free2(ws, m);
 }
 
 static inline void tcp_change_dipv6(struct work_space *ws, struct ip6_hdr *ip6h, struct tcphdr *th)
@@ -116,7 +116,7 @@ static inline struct rte_mbuf *tcp_new_packet(struct work_space *ws, struct sock
         csum_ip = sk->csum_ip;
     }
 
-    m = mbuf_cache_alloc(p);
+    m = mbuf_cache_alloc(ws, p);
     if (unlikely(m == NULL)) {
         return NULL;
     }
@@ -348,7 +348,7 @@ static void tcp_reply_rst(struct work_space *ws, struct rte_mbuf *m)
     /* not support rst yet */
     if (ws->vxlan) {
         net_stats_tcp_drop();
-        mbuf_free2(m);
+        mbuf_free2(ws, m);
         return;
     }
 
@@ -371,7 +371,8 @@ static void tcp_reply_rst(struct work_space *ws, struct rte_mbuf *m)
     }
 
     if (olen > nlen) {
-        rte_pktmbuf_trim(m, olen - nlen);
+        // rte_pktmbuf_trim(m, olen - nlen);
+        m->data_len = nlen;
     }
     net_stats_rst_tx();
     work_space_tx_send(ws, m);
@@ -452,7 +453,7 @@ static inline void tcp_server_process_syn(struct work_space *ws, struct socket *
         net_stats_tcp_drop();
     }
 
-    mbuf_free2(m);
+    mbuf_free2(ws, m);
 }
 
 static inline void tcp_client_process_syn_ack(struct work_space *ws, struct socket *sk,
@@ -490,7 +491,7 @@ static inline void tcp_client_process_syn_ack(struct work_space *ws, struct sock
     }
 
 out:
-    mbuf_free2(m);
+    mbuf_free2(ws, m);
 }
 
 static inline bool tcp_check_sequence(struct work_space *ws, struct socket *sk, struct tcphdr *th, uint16_t data_len)
@@ -742,7 +743,7 @@ static inline void tcp_server_process_data(struct work_space *ws, struct socket 
     }
 
 out:
-    mbuf_free2(m);
+    mbuf_free2(ws, m);
 }
 
 #ifdef HTTP_PARSE
@@ -881,7 +882,7 @@ static inline void tcp_client_process_data(struct work_space *ws, struct socket 
     }
 
 out:
-    mbuf_free2(m);
+    mbuf_free2(ws, m);
 }
 
 static inline void tcp_server_process(struct work_space *ws, struct rte_mbuf *m)
@@ -901,7 +902,7 @@ static inline void tcp_server_process(struct work_space *ws, struct rte_mbuf *m)
             tcp_reply_rst(ws, m);
         } else {
             net_stats_tcp_drop();
-            mbuf_free2(m);
+            mbuf_free2(ws, m);
         }
         return;
     }
@@ -922,12 +923,12 @@ static inline void tcp_server_process(struct work_space *ws, struct rte_mbuf *m)
     } else if (flags == TH_SYN) {
         return tcp_server_process_syn(ws, sk, m, th);
     } else if (flags & TH_RST) {
-        return tcp_process_rst(sk, m);
+        return tcp_process_rst(ws, sk, m);
     } else {
         MBUF_LOG(m, "drop-bad-flags");
         SOCKET_LOG(sk, "drop-bad-flags");
         net_stats_tcp_drop();
-        mbuf_free2(m);
+        mbuf_free2(ws, m);
     }
 }
 
@@ -948,7 +949,7 @@ static inline void tcp_client_process(struct work_space *ws, struct rte_mbuf *m)
             tcp_reply_rst(ws, m);
         } else {
             net_stats_tcp_drop();
-            mbuf_free2(m);
+            mbuf_free2(ws, m);
         }
         return;
     }
@@ -969,13 +970,13 @@ static inline void tcp_client_process(struct work_space *ws, struct rte_mbuf *m)
     } else if (flags == (TH_SYN | TH_ACK)) {
         return tcp_client_process_syn_ack(ws, sk, m, th);
     } else if (flags & TH_RST) {
-        return tcp_process_rst(sk, m);
+        return tcp_process_rst(ws, sk, m);
     } else {
         SOCKET_LOG_ENABLE(sk);
         MBUF_LOG(m, "drop-bad-flags");
         SOCKET_LOG(sk, "drop-bad-flags");
         net_stats_tcp_drop();
-        mbuf_free2(m);
+        mbuf_free2(ws, m);
     }
 }
 

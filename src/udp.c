@@ -160,11 +160,11 @@ static inline void udp_retransmit_handler(__rte_unused struct work_space *ws, st
     socket_close(sk);
 }
 
-static inline void udp_send_request(struct work_space *ws, struct socket *sk)
+static inline void udp_send_request(struct work_space *ws, struct socket *sk, struct rte_mbuf *m)
 {
     sk->state = SK_SYN_SENT;
     sk->keepalive_request_num++;
-    udp_send(ws, sk);
+    udp_send(ws, sk, m);
 }
 
 static void udp_socket_keepalive_timer_handler(struct work_space *ws, struct socket *sk)
@@ -184,7 +184,7 @@ static void udp_socket_keepalive_timer_handler(struct work_space *ws, struct soc
         }
 
         do {
-            udp_send_request(ws, sk);
+            udp_send_request(ws, sk, NULL);
             pipeline--;
         } while (pipeline > 0);
         if (g_config.keepalive_request_interval) {
@@ -215,11 +215,12 @@ static void udp_client_process(struct work_space *ws, struct rte_mbuf *m)
     if (sk->keepalive == 0) {
         net_stats_rtt(ws, sk);
         socket_close(sk);
+        mbuf_free(ws, m);
     } else if ((g_config.keepalive_request_interval == 0) && (!ws->stop)) {
-        udp_send_request(ws, sk);
+        udp_send_request(ws, sk, m);
     }
 
-    mbuf_free(ws, m);
+    // mbuf_free(ws, m);
     return;
 
 out:

@@ -191,7 +191,7 @@ void zcio_client_mbuf_free(uint16_t port_id, uint16_t queue_id,
     }
 }
 
-int zcio_client_alloc_mbuf(uint16_t port_id, uint16_t queue_id, 
+int zcio_client_mbuf_alloc(uint16_t port_id, uint16_t queue_id, 
         struct rte_mbuf **rx_pkts, const uint16_t nb_pkts)
 {
 	return rte_eth_rx_burst(port_id, queue_id, rx_pkts, ALLOC_NUM(nb_pkts));

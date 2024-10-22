@@ -73,7 +73,7 @@ static inline struct rte_mbuf *mbuf_cache_alloc(struct work_space *ws, struct mb
             return NULL;
         }
     }else {
-        m = zcio_client_alloc_mbuf(ws->port_id, ws->queue_id, &m, 1);
+        m = zcio_client_mbuf_alloc(ws->port_id, ws->queue_id, &m, 1);
     }
 
     // if (likely(mbuf_get_userdata(m) == p)) {

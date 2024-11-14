@@ -92,7 +92,8 @@ static int dpdk_set_socket_mem(struct config *cfg, char *socket_mem, char *file_
     }
     
     if(cfg->file_prefix[0] == '\0')
-        size = snprintf(file_prefix, RTE_ARG_LEN, "--file-prefix=dperf-%d", getpid());
+        // size = snprintf(file_prefix, RTE_ARG_LEN, "--file-prefix=dperf-%d", getpid());
+        size = 0;
     else
         size = snprintf(file_prefix, RTE_ARG_LEN, "--file-prefix=%s", cfg->file_prefix);
     if (size >= RTE_ARG_LEN) {
@@ -118,9 +119,11 @@ static void dpdk_set_simd_bitwidth(__rte_unused struct config *cfg)
 static int dpdk_eal_init(struct config *cfg, char *argv0)
 {
     int argc = 5;
+    // char log_level[256] = "--log-level=lib.eal:debug";
     char log_level[64];
     char lcores[2048] = "--lcores=";
     char no_pci[] = "--no-pci";
+    char subproc[] = "--proc-type=secondary";
 #if RTE_VERSION >= RTE_VERSION_NUM(20, 0, 0, 0)
     char telementry[64] = "--no-telemetry";
     char flag_pci[] = "-a";
@@ -129,7 +132,7 @@ static int dpdk_eal_init(struct config *cfg, char *argv0)
 #endif
     char socket_mem[64] = "";
     char file_prefix[64] = "";
-    char *argv[6 + (NETIF_PORT_MAX * PCI_NUM_MAX* 2)] = {argv0, lcores, socket_mem,
+    char *argv[8 + (NETIF_PORT_MAX * PCI_NUM_MAX* 2)] = {argv0, lcores, socket_mem,
             file_prefix, log_level, NULL, NULL};
 
 #if RTE_VERSION >= RTE_VERSION_NUM(20, 0, 0, 0)
@@ -139,6 +142,9 @@ static int dpdk_eal_init(struct config *cfg, char *argv0)
 
     if(cfg->no_cpi)
         argv[argc++] = no_pci;
+    
+    if(cfg->subproc)
+        argv[argc++] = subproc;
 
     sprintf(log_level, "--log-level=%d", cfg->log_level);
     if (dpdk_set_socket_mem(cfg, socket_mem, file_prefix) < 0) {

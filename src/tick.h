@@ -29,6 +29,8 @@
 #define TSC_PER_SEC g_tsc_per_second
 
 extern uint64_t g_tsc_per_second;
+extern uint64_t g_tsc_per_millisec;
+extern uint64_t g_tsc_per_microsec;
 
 struct tsc_time {
     uint64_t last;

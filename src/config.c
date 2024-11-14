@@ -47,6 +47,7 @@ static int config_parse_mode(int argc, char *argv[], void *data);
 static int config_parse_cpu(int argc, char *argv[], void *data);
 static int config_parse_socket_mem(int argc, char *argv[], void *data);
 static int config_parse_port(int argc, char *argv[], void *data);
+static int config_parse_subproc(int argc, char *argv[], void *data);
 static int config_parse_no_pci(int argc, char *argv[], void *data);
 static int config_parse_file_prefix(int argc, char *argv[], void *data);
 static int config_parse_duration(int argc, char *argv[], void *data);
@@ -104,6 +105,7 @@ static struct config_keyword g_config_keywords[] = {
     {"cpu", config_parse_cpu, "n0 n1 n2-n3..., eg 0-4 7 8 9 10"},
     {"socket_mem", config_parse_socket_mem, "n0,n1,n2..."},
     {"port", config_parse_port, "PCI/bondMode:Policy(PCI0,PCI1,...) IPAddress Gateway [Gateway-Mac], eg 0000:13:00.0 192.168.1.3 192.168.1.1"},
+    {"subproc", config_parse_subproc, "sub process"},
     {"no_pci", config_parse_no_pci, "no pci"},
     {"file_prefix", config_parse_file_prefix, "dperf HugePage file-prefix"},
     {"duration", config_parse_duration, "Time, eg 1.5d, 2h, 3.5m, 100s, 100"},
@@ -554,7 +556,7 @@ static int config_parse_vdev(struct netif_port *port, char *str)
     char *p = NULL;
     
     int str_len = strlen(str);
-    if (str_len < 5) { // "vdev="
+    if (str_len < 8) { // "--vdev="
         return -1;
     }
 
@@ -632,6 +634,13 @@ static int config_parse_port(int argc, char *argv[], void *data)
     sprintf(port->bond_name, "net_bonding%d", cfg->port_num);
     port->id = -1;
     cfg->port_num++;
+    return 0;
+}
+
+static int config_parse_subproc(int argc, char *argv[], void *data)
+{
+    struct config *cfg = data;
+    cfg->subproc = true;
     return 0;
 }
 

@@ -74,7 +74,7 @@ void mbuf_log(struct rte_mbuf *m, const char *tag);
 #define MBUF_LOG(m, tag)
 #endif
 
-int mbuf_pool_init(struct config *cfg);
+// int mbuf_pool_init(struct config *cfg);
 struct rte_mempool *mbuf_pool_create(const char *str, uint16_t port_id, uint16_t queue_id);
 
 struct mbuf_free_pool {

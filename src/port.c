@@ -302,9 +302,9 @@ static int port_start(struct netif_port *port)
         rte_eth_promiscuous_enable(port_id);
         rte_eth_stats_reset(port_id);
 
-        ret = rte_eth_macaddr_get(port, &addr);
+        ret = rte_eth_macaddr_get(port->id, &addr);
         if (ret < 0) {
-            printf("Error reading MAC address for port %d\n", port);
+            printf("Error reading MAC address for port %d\n", port->id);
             return 0;
         }
 

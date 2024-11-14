@@ -45,7 +45,7 @@
 #define DEFAULT_LAUNCH_MIN  4
 #define DEFAULT_LAUNCH      4
 #define DELAY_SEC           4
-#define NEIGH_SEC           60
+#define NEIGH_SEC           20
 #define WAIT_DEFAULT        3
 #define SLOW_START_DEFAULT  30
 #define SLOW_START_MIN      10
@@ -131,6 +131,7 @@ struct config {
     bool http;
     bool stats_http;    /* payload size >= HTTP_DATA_MIN_SIZE */
     bool no_cpi;
+    bool subproc;
     uint8_t http_method;
     uint8_t tos;
     uint8_t pipeline;

@@ -38,6 +38,11 @@
 
 struct socket_table;
 
+#define mark(x) \
+do { \
+    printf("mark%d\n", x); \
+} while (0)
+
 extern __thread struct work_space *g_work_space;
 #define g_current_ticks (g_work_space->time.tick.count)
 #define g_current_seconds (g_work_space->time.second.count)

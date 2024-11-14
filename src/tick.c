@@ -27,6 +27,8 @@
 
 static uint64_t g_tsc_per_tick = 0;
 uint64_t g_tsc_per_second = 0;
+uint64_t g_tsc_per_millisec = 0;
+uint64_t g_tsc_per_microsec = 0;
 
 void tick_wait_init(struct timeval *last_tv)
 {
@@ -89,6 +91,8 @@ void tick_init(int ticks_per_sec)
 
     hz = tick_get_hz();
     g_tsc_per_second = hz;
+    g_tsc_per_millisec = hz / 1000;
+    g_tsc_per_microsec = hz / 1000000;
     g_tsc_per_tick = hz / ticks_per_sec;
 }
 

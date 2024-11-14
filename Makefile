@@ -55,7 +55,7 @@ LDFLAGS += $(LDFLAGS2)
 
 build/$(APP): $(SRCS-y)
 	mkdir -p build
-	gcc $(CFLAGS) $(SRCS-y) -o $@ $(LDFLAGS)
+	gcc-11 $(CFLAGS) $(SRCS-y) -o $@ $(LDFLAGS)
 
 clean:
 	rm -rf build/

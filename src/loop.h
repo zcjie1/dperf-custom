@@ -164,6 +164,7 @@ static inline void ipv4_input(struct work_space *ws, struct rte_mbuf *m,
             return tcp_input(ws, m);
         } else if (likely(proto == IPPROTO_UDP)) {
             net_stats_udp_rx();
+            net_stats_udp_jitter(m);
             return udp_input(ws, m);
         } else if (proto == IPPROTO_ICMP) {
             return icmp_process(ws, m);

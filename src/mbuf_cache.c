@@ -283,6 +283,13 @@ static int mbuf_data_push_data(struct mbuf_data *mdata, const char *data)
     return 0;
 }
 
+// static int mbuf_data_push_tsc(struct mbuf_data *mdata)
+// {
+//     uint16_t len = sizeof(uint64_t);
+//     uint64_t dummy = 0;
+//     return mbuf_data_push(mdata, (uint8_t*)&dummy, len);
+// }
+
 int mbuf_cache_init_tcp(struct mbuf_cache *cache, struct work_space *ws, const char *name, uint16_t mss, const char *data)
 {
     struct mbuf_data mdata;
@@ -341,6 +348,10 @@ int mbuf_cache_init_udp(struct mbuf_cache *cache, struct work_space *ws, const c
         return -1;
     }
 
+    // if(mbuf_data_push_tsc(&mdata) < 0) {
+    //     return -1;
+    // }
+    
     uh = mbuf_data_uphdr(&mdata);
     uh->len = htons(mdata.l4_len + mdata.data_len);
 

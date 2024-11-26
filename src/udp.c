@@ -78,6 +78,17 @@ static inline void udp_change_dip(struct work_space *ws, struct iphdr *iph, stru
     }
 }
 
+static uint64_t current_time(void)
+{
+	struct timespec ts;
+	if (clock_gettime(CLOCK_MONOTONIC_RAW, &ts) == -1) {
+		printf("Error: Fail to get current time\n");
+		return -1ULL;
+    }
+    uint64_t time_ns = (uint64_t)ts.tv_sec * 1000000000ULL + ts.tv_nsec;
+    return time_ns;
+}
+
 static inline struct rte_mbuf *udp_new_packet(struct work_space *ws, struct socket *sk)
 {
     struct rte_mbuf *m = NULL;
@@ -85,6 +96,7 @@ static inline struct rte_mbuf *udp_new_packet(struct work_space *ws, struct sock
     struct udphdr *uh = NULL;
     struct ip6_hdr *ip6h = NULL;
     struct vxlan_headers *vxhs = NULL;
+    uint64_t *now_tsc = NULL;
 
     m = mbuf_cache_alloc(&ws->udp);
     if (unlikely(m == NULL)) {
@@ -126,6 +138,10 @@ static inline struct rte_mbuf *udp_new_packet(struct work_space *ws, struct sock
     if (ws->change_dip) {
         udp_change_dip(ws, iph, uh);
     }
+
+    // add UDP tsc for jitter measure
+    now_tsc = (uint64_t *)(uh + 1);
+    *now_tsc = current_time();
 
     return m;
 }

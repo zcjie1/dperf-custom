@@ -160,6 +160,7 @@ static int net_stats_print_socket(struct net_stats *stats, char *buf, int buf_le
     int len = buf_len;
     uint64_t sk_open = 0;
     uint64_t sk_close = 0;
+    uint64_t udp_jitter = 0;
 
     sk_open = stats->socket_open - stats->socket_dup;
     sk_close = stats->socket_close;
@@ -171,6 +172,7 @@ static int net_stats_print_socket(struct net_stats *stats, char *buf, int buf_le
     net_stats_format_print(sk_close, close, STATS_BUF_LEN);
     net_stats_format_print_err(stats->socket_error, error, STATS_BUF_LEN);
     net_stats_format_print(stats->socket_current, curr, STATS_BUF_LEN);
+    udp_jitter = g_net_stats_total.udp_jitter;
 
     if ((g_config.server) || (g_config.keepalive)) {
         SNPRINTF(p, len, "skOpen  %s skClose  %s skCon    %s skErr   %s\n", open, close, curr, error);
@@ -178,6 +180,7 @@ static int net_stats_print_socket(struct net_stats *stats, char *buf, int buf_le
         net_stats_print_rtt(stats, rtt, STATS_BUF_LEN);
         SNPRINTF(p, len, "skOpen  %s skClose  %s skCon    %s skErr   %s rtt(us) %s\n", open, close, curr, error, rtt);
     }
+    SNPRINTF(p, len, "udp_jitter: %lu us\n", udp_jitter/1000);
     return p - buf;
 
 err:
@@ -329,7 +332,7 @@ static int net_stats_print_retransmit(struct net_stats *stats, char *buf, int bu
     char tcp_drop[STATS_BUF_LEN];
     char ack_dup[STATS_BUF_LEN];
 
-    char udp_rt[STATS_BUF_LEN];
+    char udp_rt[STATS_BUF_LEN] = "0";
     char udp_drop[STATS_BUF_LEN];
     int len = buf_len;
 
@@ -433,6 +436,11 @@ static void net_stats_add(struct net_stats *result, struct net_stats *s)
     int i = 0;
 
     for (i = 0; i < NET_STATS_ELEMENTS_NUM; i++) {
+        if(i == 0) {
+            NET_STATS(result, i) = NET_STATS(result, i) > NET_STATS(s, i) ? 
+                NET_STATS(result, i) : NET_STATS(s, i);
+            continue;
+        }
         NET_STATS(result, i) += NET_STATS(s, i);
     }
 }
@@ -613,4 +621,51 @@ void net_stats_init(struct work_space *ws)
 {
     memset(&g_net_stats, 0, sizeof(struct net_stats));
     g_net_stats_all[ws->id] = &g_net_stats;
+}
+
+static uint64_t current_time(void)
+{
+	struct timespec ts;
+	if (clock_gettime(CLOCK_MONOTONIC_RAW, &ts) == -1) {
+		printf("Error: Fail to get current time\n");
+		return -1ULL;
+    }
+    uint64_t time_ns = (uint64_t)ts.tv_sec * 1000000000ULL + ts.tv_nsec;
+    return time_ns;
+}
+
+void net_stats_udp_jitter(struct rte_mbuf *m)
+{
+    static uint64_t prev_transmit;
+    // static uint64_t max_diff;
+    struct udphdr *uh = mbuf_udp_hdr(m);
+    uint64_t send_tsc = *(uint64_t *)(uh + 1);
+    uint64_t now_tsc = current_time();
+    uint64_t diff = now_tsc - send_tsc;
+    uint64_t tmp = 0;
+
+    if(now_tsc < send_tsc)
+        return;
+    
+    // if(diff >= max_diff)
+    //     max_diff = diff;
+    // printf("curr_trans: %lu\n", max_diff);
+    
+    if(g_net_stats.udp_rx == 1)
+        prev_transmit = diff;
+    
+    if(diff < prev_transmit)
+        diff = prev_transmit - diff;
+    else
+        diff = diff - prev_transmit;
+    
+    
+    prev_transmit = diff;
+    if(diff >= g_net_stats.udp_jitter)
+        g_net_stats.udp_jitter += (diff - g_net_stats.udp_jitter) >> 4;
+    else {
+        tmp = (g_net_stats.udp_jitter - diff) >> 4;
+        g_net_stats.udp_jitter -= tmp;
+    }
+    // printf("udp jitter: %lu\n", g_net_stats.udp_jitter);
 }

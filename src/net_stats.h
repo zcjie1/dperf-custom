@@ -23,8 +23,10 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <rte_mbuf.h>
 
 struct net_stats {
+    uint64_t udp_jitter;
     /* Increasing */
 
     /* interface */
@@ -108,6 +110,7 @@ void net_stats_init(struct work_space *ws);
 void net_stats_timer_handler(struct work_space *ws);
 void net_stats_print_total(FILE *fp);
 void net_stats_print_speed(FILE *fp, int seconds);
+void net_stats_udp_jitter(struct rte_mbuf *m);
 extern __thread struct net_stats g_net_stats;
 #define net_stats_socket_dup()      do {g_net_stats.socket_dup++;\
                                         g_net_stats.socket_open++; g_net_stats.socket_current++;} while (0)

@@ -179,7 +179,7 @@ static inline void ipv4_input(struct work_space *ws, struct rte_mbuf *m,
 
     net_stats_other_rx();
 drop:
-    mbuf_free(m);
+        mbuf_free(m);
 }
 
 /*

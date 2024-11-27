@@ -332,7 +332,7 @@ static int net_stats_print_retransmit(struct net_stats *stats, char *buf, int bu
     char tcp_drop[STATS_BUF_LEN];
     char ack_dup[STATS_BUF_LEN];
 
-    char udp_rt[STATS_BUF_LEN] = "0";
+    char udp_rt[STATS_BUF_LEN];
     char udp_drop[STATS_BUF_LEN];
     int len = buf_len;
 

@@ -98,11 +98,13 @@ static inline struct rte_mbuf *udp_new_packet(struct work_space *ws, struct sock
     struct vxlan_headers *vxhs = NULL;
     uint64_t *now_tsc = NULL;
 
+    // mark(1);
     m = mbuf_cache_alloc(&ws->udp);
     if (unlikely(m == NULL)) {
         return NULL;
     }
 
+    // mark(2);
     if (ws->vxlan) {
         vxhs = (struct vxlan_headers *)mbuf_eth_hdr(m);
         vxhs->uh.source = (sk->fport + sk->lport + sk->csum_ip) | htons(VXLAN_SPORT_MASK);
@@ -125,6 +127,11 @@ static inline struct rte_mbuf *udp_new_packet(struct work_space *ws, struct sock
         iph->id = htons(ws->ip_id++);
         iph->saddr = sk->laddr;
         iph->daddr = sk->faddr;
+        // printf("%u——>%u\n", (uint32_t)iph->saddr, (uint32_t)iph->daddr);
+        // usleep(50);
+        // printf("%u——>%u\n", (uint32_t)iph->saddr, (uint32_t)iph->daddr);
+        // usleep(50);
+        // printf("%u——>%u\n", (uint32_t)iph->saddr, (uint32_t)iph->daddr);
     } else {
         ip6h->ip6_src.s6_addr32[3] = sk->laddr;
         ip6h->ip6_dst.s6_addr32[3] = sk->faddr;
@@ -139,6 +146,7 @@ static inline struct rte_mbuf *udp_new_packet(struct work_space *ws, struct sock
         udp_change_dip(ws, iph, uh);
     }
 
+    // mark(3);
     // add UDP tsc for jitter measure
     now_tsc = (uint64_t *)(uh + 1);
     *now_tsc = current_time();
@@ -151,10 +159,11 @@ static inline struct rte_mbuf* udp_send(struct work_space *ws, struct socket *sk
     struct rte_mbuf *m = NULL;
 
     m = udp_new_packet(ws, sk);
+    // mark(1);
     if (m) {
         work_space_tx_send_udp(ws, m);
     }
-
+    // mark(2);
     return m;
 }
 
@@ -227,12 +236,12 @@ static void udp_client_process(struct work_space *ws, struct rte_mbuf *m)
         udp_send_request(ws, sk);
     }
 
-    mbuf_free(m);
+        mbuf_free(m);
     return;
 
 out:
     net_stats_udp_drop();
-    mbuf_free(m);
+        mbuf_free(m);
 }
 
 static void udp_server_process(struct work_space *ws, struct rte_mbuf *m)
@@ -249,13 +258,16 @@ static void udp_server_process(struct work_space *ws, struct rte_mbuf *m)
         goto out;
     }
 
+    // mark(1);
     udp_send(ws, sk);
+    // mark(2);
     mbuf_free(m);
+    // mark(3);
     return;
 
 out:
     net_stats_udp_drop();
-    mbuf_free(m);
+        mbuf_free(m);
 }
 
 static int udp_client_launch(struct work_space *ws)
@@ -374,6 +386,6 @@ void udp_drop(__rte_unused struct work_space *ws, struct rte_mbuf *m)
         }
         MBUF_LOG(m, "drop");
         net_stats_udp_drop();
-        mbuf_free2(m);
+            mbuf_free2(m);
     }
 }

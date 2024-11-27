@@ -84,19 +84,34 @@ struct mbuf_free_pool {
 
 extern __thread struct mbuf_free_pool g_mbuf_free_pool;
 
-#define mbuf_free(m) rte_pktmbuf_free(m)
+// #define mbuf_free(m) rte_pktmbuf_free(m)
+static void mbuf_free(struct rte_mbuf* m) {
+    if(g_config.share_memory) {
+        m->pool = rte_mempool_lookup(g_config.share_memory_name);
+        rte_mempool_put(m->pool, m);
+    }else {
+        rte_pktmbuf_free(m);
+    }
+}
 
 static inline void mbuf_free2(struct rte_mbuf *m)
 {
-    if (m) {
-        m->next = g_mbuf_free_pool.head;
-        g_mbuf_free_pool.head = m;
-        g_mbuf_free_pool.num++;
-        if (g_mbuf_free_pool.num >= 128) {
-            rte_pktmbuf_free(m);
-            g_mbuf_free_pool.head = NULL;
-            g_mbuf_free_pool.num = 0;
-        }
+    if(!m)
+        return;
+    
+    if(g_config.share_memory) {
+        mbuf_free(m);
+        return;
+    }
+        
+    
+    m->next = g_mbuf_free_pool.head;
+    g_mbuf_free_pool.head = m;
+    g_mbuf_free_pool.num++;
+    if (g_mbuf_free_pool.num >= 128) {
+        rte_pktmbuf_free(m);
+        g_mbuf_free_pool.head = NULL;
+        g_mbuf_free_pool.num = 0;
     }
 }
 

@@ -50,6 +50,7 @@ static int config_parse_port(int argc, char *argv[], void *data);
 static int config_parse_subproc(int argc, char *argv[], void *data);
 static int config_parse_no_pci(int argc, char *argv[], void *data);
 static int config_parse_file_prefix(int argc, char *argv[], void *data);
+static int config_parse_share_mem_name(int argc, char *argv[], void *data);
 static int config_parse_duration(int argc, char *argv[], void *data);
 static int config_parse_cps(int argc, char *argv[], void *data);
 static int config_parse_cc(int argc, char *argv[], void *data);
@@ -108,6 +109,7 @@ static struct config_keyword g_config_keywords[] = {
     {"subproc", config_parse_subproc, "sub process"},
     {"no_pci", config_parse_no_pci, "no pci"},
     {"file_prefix", config_parse_file_prefix, "dperf HugePage file-prefix"},
+    {"share_mem_name", config_parse_share_mem_name, "share memory name"},
     {"duration", config_parse_duration, "Time, eg 1.5d, 2h, 3.5m, 100s, 100"},
     {"cps", config_parse_cps, "Number, eg 1m, 1.5m, 2k, 100"},
     {"cc", config_parse_cc, "Number, eg 100m, 1.5m, 2k, 100"},
@@ -663,6 +665,23 @@ static int config_parse_file_prefix(int argc, char *argv[], void *data)
     
     memcpy(cfg->file_prefix, argv[1], len);
     cfg->file_prefix[len] = '\0';
+    return 0;
+}
+
+static int config_parse_share_mem_name(int argc, char *argv[], void *data)
+{
+    struct config *cfg = data;
+    if(argc != 2)
+        return -1;
+    
+    size_t len = strlen(argv[1]);
+    if(len >= 64)
+        return -1;
+    
+    memcpy(cfg->share_memory_name, argv[1], len);
+    cfg->share_memory_name[len] = '\0';
+    cfg->share_memory = true;
+    // cfg->share_mp = rte_mempool_lookup(cfg->share_memory_name);
     return 0;
 }
 

@@ -132,6 +132,7 @@ struct config {
     bool stats_http;    /* payload size >= HTTP_DATA_MIN_SIZE */
     bool no_cpi;
     bool subproc;
+    bool share_memory;
     uint8_t http_method;
     uint8_t tos;
     uint8_t pipeline;
@@ -190,6 +191,8 @@ struct config {
     int listen_num;
     
     char file_prefix[RTE_ARG_LEN];
+    char share_memory_name[RTE_ARG_LEN];
+    // struct rte_mempool *share_mp;
 
     struct ip_group client_ip_group;
     struct ip_group server_ip_group;

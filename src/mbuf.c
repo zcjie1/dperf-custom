@@ -47,9 +47,13 @@ struct rte_mempool *mbuf_pool_create(const char *str, uint16_t port_id, uint16_t
         mbuf_size = RTE_MBUF_DEFAULT_BUF_SIZE;
     }
 
-    mbuf_pool = rte_pktmbuf_pool_create(name, NB_MBUF,
+    if(g_config.share_memory) {
+        mbuf_pool = rte_mempool_lookup(g_config.share_memory_name);
+    }else {
+        mbuf_pool = rte_pktmbuf_pool_create(name, NB_MBUF,
                 RTE_MEMPOOL_CACHE_MAX_SIZE, 0, mbuf_size, socket_id);
-
+    }
+    
     if (mbuf_pool == NULL) {
         printf("rte_pkt_pool_create error\n");
     }

@@ -81,6 +81,7 @@ static void arp_request_gw2(struct work_space *ws, uint32_t local_ip)
     }
 
     arp_set_request(m, &port->local_mac, port->gateway_ip.ip, local_ip);
+    // printf("send arp request");
     arp_send(ws, m);
 }
 
@@ -136,7 +137,7 @@ static void arp_process_reply(struct work_space *ws, struct rte_mbuf *m)
         work_space_update_gw(ws, &eth->s_addr);
     }
 
-    mbuf_free(m);
+        mbuf_free(m);
 }
 
 static void arp_process_request(struct work_space *ws, struct rte_mbuf *m)
@@ -167,10 +168,12 @@ void arp_process(struct work_space *ws, struct rte_mbuf *m)
     }
 
     if (arph->ar_op == htons(ARP_REQUEST)) {
+        // printf("arp request\n");
         arp_process_request(ws, m);
     } else if (arph->ar_op == htons(ARP_REPLY)) {
+        // printf("arp reply\n");
         arp_process_reply(ws, m);
     } else {
-        mbuf_free(m);
+            mbuf_free(m);
     }
 }

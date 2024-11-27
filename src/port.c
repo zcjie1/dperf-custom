@@ -364,6 +364,7 @@ void port_clear(uint16_t port_id, uint16_t queue_id)
     for (i = 0; i < NB_RXD; i++) {
         ret = rte_eth_rx_burst(port_id, queue_id, &m, 1);
         if (ret) {
+            // printf("rx clear one packet\n");
             mbuf_free(m);
         } else {
             break;

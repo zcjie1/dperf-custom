@@ -67,39 +67,39 @@ static inline struct rte_mbuf *mbuf_cache_alloc(struct mbuf_cache *p)
     uint8_t *data = NULL;
     struct rte_mbuf *m = NULL;
 
-    if(g_config.share_memory) {
-        rte_mempool_get(p->mbuf_pool, (void **)&m);
-        if (unlikely(m == NULL)) {
-            return NULL;
-        }
-        m->data_off = 0;
-        m->buf_len = 10240 + 128;
-        m->refcnt = 1;
-        m->nb_segs = 1;
-        m->next = NULL;
-        m->tx_offload = 0;
-        m->vlan_tci = 0;
-        m->vlan_tci_outer = 0;
-        m->ol_flags = 0;
-        m->port = RTE_MBUF_PORT_INVALID;
-        m->packet_type = 0;
-        m->data_len = 0;
-        m->pkt_len = 0;
-        m->buf_addr = (void *)((struct rte_mbuf*)m + 1);
-    }else {
+    // if(g_config.share_memory) {
+    //     rte_mempool_get(p->mbuf_pool, (void **)&m);
+    //     if (unlikely(m == NULL)) {
+    //         return NULL;
+    //     }
+    //     m->data_off = 0;
+    //     m->buf_len = 10240 + 128;
+    //     m->refcnt = 1;
+    //     m->nb_segs = 1;
+    //     m->next = NULL;
+    //     m->tx_offload = 0;
+    //     m->vlan_tci = 0;
+    //     m->vlan_tci_outer = 0;
+    //     m->ol_flags = 0;
+    //     m->port = RTE_MBUF_PORT_INVALID;
+    //     m->packet_type = 0;
+    //     m->data_len = 0;
+    //     m->pkt_len = 0;
+    //     m->buf_addr = (void *)((struct rte_mbuf*)m + 1);
+    // }else {
         m = rte_pktmbuf_alloc(p->mbuf_pool);
         if (unlikely(m == NULL)) {
             return NULL;
         }
-    }
+    // }
     
-    // if (likely(mbuf_get_userdata(m) == p)) {
-    //     mbuf_push_data(m, p->data.total_len);
-    // } else {
+    if (likely(mbuf_get_userdata(m) == p)) {
+        mbuf_push_data(m, p->data.total_len);
+    } else {
         mbuf_set_userdata(m, p);
         data = mbuf_push_data(m, p->data.total_len);
         memcpy(data, p->data.data, p->data.total_len);
-    // }
+    }
 
     return m;
 }

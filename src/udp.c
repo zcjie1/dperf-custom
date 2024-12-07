@@ -127,11 +127,6 @@ static inline struct rte_mbuf *udp_new_packet(struct work_space *ws, struct sock
         iph->id = htons(ws->ip_id++);
         iph->saddr = sk->laddr;
         iph->daddr = sk->faddr;
-        // printf("%u——>%u\n", (uint32_t)iph->saddr, (uint32_t)iph->daddr);
-        // usleep(50);
-        // printf("%u——>%u\n", (uint32_t)iph->saddr, (uint32_t)iph->daddr);
-        // usleep(50);
-        // printf("%u——>%u\n", (uint32_t)iph->saddr, (uint32_t)iph->daddr);
     } else {
         ip6h->ip6_src.s6_addr32[3] = sk->laddr;
         ip6h->ip6_dst.s6_addr32[3] = sk->faddr;
@@ -236,12 +231,12 @@ static void udp_client_process(struct work_space *ws, struct rte_mbuf *m)
         udp_send_request(ws, sk);
     }
 
-        mbuf_free(m);
+    mbuf_free(m);
     return;
 
 out:
     net_stats_udp_drop();
-        mbuf_free(m);
+    mbuf_free(m);
 }
 
 static void udp_server_process(struct work_space *ws, struct rte_mbuf *m)
@@ -267,7 +262,7 @@ static void udp_server_process(struct work_space *ws, struct rte_mbuf *m)
 
 out:
     net_stats_udp_drop();
-        mbuf_free(m);
+    mbuf_free(m);
 }
 
 static int udp_client_launch(struct work_space *ws)

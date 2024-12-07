@@ -137,7 +137,7 @@ static void arp_process_reply(struct work_space *ws, struct rte_mbuf *m)
         work_space_update_gw(ws, &eth->s_addr);
     }
 
-        mbuf_free(m);
+    mbuf_free(m);
 }
 
 static void arp_process_request(struct work_space *ws, struct rte_mbuf *m)
@@ -174,6 +174,6 @@ void arp_process(struct work_space *ws, struct rte_mbuf *m)
         // printf("arp reply\n");
         arp_process_reply(ws, m);
     } else {
-            mbuf_free(m);
+        mbuf_free(m);
     }
 }

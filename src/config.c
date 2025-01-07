@@ -49,6 +49,7 @@ static int config_parse_socket_mem(int argc, char *argv[], void *data);
 static int config_parse_port(int argc, char *argv[], void *data);
 static int config_parse_subproc(int argc, char *argv[], void *data);
 static int config_parse_no_pci(int argc, char *argv[], void *data);
+static int config_parse_no_shvdev(int argc, char *argv[], void *data);
 static int config_parse_file_prefix(int argc, char *argv[], void *data);
 static int config_parse_share_mem_name(int argc, char *argv[], void *data);
 static int config_parse_duration(int argc, char *argv[], void *data);
@@ -107,6 +108,7 @@ static struct config_keyword g_config_keywords[] = {
     {"socket_mem", config_parse_socket_mem, "n0,n1,n2..."},
     {"port", config_parse_port, "PCI/bondMode:Policy(PCI0,PCI1,...) IPAddress Gateway [Gateway-Mac], eg 0000:13:00.0 192.168.1.3 192.168.1.1"},
     {"subproc", config_parse_subproc, "sub process"},
+    {"no_shvdev", config_parse_no_shvdev, "no share vdev"},
     {"no_pci", config_parse_no_pci, "no pci"},
     {"file_prefix", config_parse_file_prefix, "dperf HugePage file-prefix"},
     {"share_mem_name", config_parse_share_mem_name, "share memory name"},
@@ -646,10 +648,17 @@ static int config_parse_subproc(int argc, char *argv[], void *data)
     return 0;
 }
 
+static int config_parse_no_shvdev(int argc, char *argv[], void *data)
+{
+    struct config *cfg = data;
+    cfg->no_shvdev = true;
+    return 0;
+}
+
 static int config_parse_no_pci(int argc, char *argv[], void *data)
 {
     struct config *cfg = data;
-    cfg->no_cpi = true;
+    cfg->no_pci = true;
     return 0;
 }
 

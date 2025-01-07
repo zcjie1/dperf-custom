@@ -123,6 +123,7 @@ static int dpdk_eal_init(struct config *cfg, char *argv0)
     char log_level[64];
     char lcores[2048] = "--lcores=";
     char no_pci[] = "--no-pci";
+    char no_shvdev[] = "--no-shvdev";
     char subproc[] = "--proc-type=secondary";
 #if RTE_VERSION >= RTE_VERSION_NUM(20, 0, 0, 0)
     char telementry[64] = "--no-telemetry";
@@ -140,8 +141,11 @@ static int dpdk_eal_init(struct config *cfg, char *argv0)
     argc++;
 #endif
 
-    if(cfg->no_cpi)
+    if(cfg->no_pci)
         argv[argc++] = no_pci;
+    
+    if(cfg->no_shvdev)
+        argv[argc++] = no_shvdev;
     
     if(cfg->subproc)
         argv[argc++] = subproc;

@@ -130,7 +130,8 @@ struct config {
     bool tcp_rst;
     bool http;
     bool stats_http;    /* payload size >= HTTP_DATA_MIN_SIZE */
-    bool no_cpi;
+    bool no_shvdev;
+    bool no_pci;
     bool subproc;
     bool share_memory;
     uint8_t http_method;
